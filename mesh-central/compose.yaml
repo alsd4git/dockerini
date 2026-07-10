@@ -1,0 +1,34 @@
+# MeshCentral Stack
+# Self-hosted remote device management exposed through Nginx Proxy Manager.
+#
+# Required environment variables:
+# - DOCKER_DATA_BASEFOLDER: Base directory for persistent data
+
+name: mesh-central
+
+services:
+  meshcentral:
+    container_name: meshcentral
+    image: ghcr.io/ylianst/meshcentral:latest
+    restart: unless-stopped
+    ports:
+      - 87:443 # HTTPS (external mapping)
+    expose:
+      - 80 # Web (internal, insecure fallback)
+      - 443 # Web UI/API (internal, for reverse proxy or internal access)
+      - 4433 # Intel AMT (internal)
+    environment:
+    - TZ=Europe/Rome
+    volumes:
+      - ${DOCKER_DATA_BASEFOLDER:-/opt/docker/data}/meshcentral/data:/opt/meshcentral/meshcentral-data
+      - ${DOCKER_DATA_BASEFOLDER:-/opt/docker/data}/meshcentral/user_files:/opt/meshcentral/meshcentral-files
+      - ${DOCKER_DATA_BASEFOLDER:-/opt/docker/data}/meshcentral/backup:/opt/meshcentral/meshcentral-backups
+      - ${DOCKER_DATA_BASEFOLDER:-/opt/docker/data}/meshcentral/web:/opt/meshcentral/meshcentral-web
+    networks:
+      - npm_network
+
+networks:
+  npm_network:
+    name: npm_network
+    driver: bridge
+    external: true
